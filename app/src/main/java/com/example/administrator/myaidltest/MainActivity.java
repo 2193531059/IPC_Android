@@ -20,15 +20,36 @@ import com.example.administrator.messengertest.MessengerService;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
-//    private IMyAidl mAidl;
+    private IMyAidl mAidl;
     private IMyAidlManager mAidlManager;
     private Button mBtn;
     private TextView mTextView;
     private Messenger mService;
     private Messenger getmService = new Messenger(new MessengerHandler());
+
+    private static final int ON_NEW_PERSON_ARRIVED = 1;
+
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case ON_NEW_PERSON_ARRIVED:
+                    Person person = (Person) msg.obj;
+                    mTextView.setText(person.toString());
+                    break;
+            }
+        }
+    };
+
+    private IOnNewPersonArrviedListener mListener = new IOnNewPersonArrviedListener.Stub() {
+        @Override
+        public void onNewPersonArrvied(Person person) throws RemoteException {
+            mHandler.obtainMessage(ON_NEW_PERSON_ARRIVED, person).sendToTarget();
+        }
+    };
 
     private static class MessengerHandler extends Handler{
         @Override
@@ -46,11 +67,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
         @Override
         public void binderDied() {
-            if (mAidlManager == null) {
+            //此处运行在Binder线程池中，不可进行UI操作
+            if (mAidl == null) {
                 return;
             }
-            mAidlManager.asBinder().unlinkToDeath(mDeathRecipient, 0);
-            mAidlManager = null;
+            mAidl.asBinder().unlinkToDeath(mDeathRecipient, 0);
+            mAidl = null;
             Intent intent = new Intent(getApplicationContext(), MyService.class);
             bindService(intent, mConnection, BIND_AUTO_CREATE);
         }
@@ -59,9 +81,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-//            mAidl = IMyAidl.Stub.asInterface(service);
-            mAidlManager = MyAidlManagerImpl.asInterface(service);
+            mAidl = IMyAidl.Stub.asInterface(service);
+//            mAidlManager = MyAidlManagerImpl.asInterface(service);
             try {
+                mAidl.registerNewPersonArrviedListener(mListener);
                 service.linkToDeath(mDeathRecipient, 0);
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -70,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mAidlManager = null;
+            mAidl = null;
         }
     };
 
@@ -105,8 +128,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTextView = findViewById(R.id.showText);
         Intent intent = new Intent(getApplicationContext(), MyService.class);
         bindService(intent, mConnection, BIND_AUTO_CREATE);
-        Intent intent1 = new Intent(getApplicationContext(), MessengerService.class);
-        bindService(intent1, mconn, BIND_AUTO_CREATE);
+//        Intent intent1 = new Intent(getApplicationContext(), MessengerService.class);
+//        bindService(intent1, mconn, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -117,8 +140,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Person p = new Person("周", 1, random.nextInt(100), new PersonCar("Black", "BMW"));
 
                 try {
-                    mAidlManager.addPerson(p);
-                    List<Person> mAcceptData = mAidlManager.getPersonList();
+                    mAidl.addPerson(p);
+                    List<Person> mAcceptData = mAidl.getPersonList();
                     mTextView.setText(mAcceptData.toString());
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -130,7 +153,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mAidl != null && mAidl.asBinder().isBinderAlive()) {
+            try {
+                Log.e(TAG, "onDestroy: unregisterListener = " + mListener);
+                mAidl.unregisterNewPersonArrviedListener(mListener);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
         unbindService(mConnection);
-        unbindService(mconn);
+//        unbindService(mconn);
     }
 }
