@@ -2,11 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.administrator.myaidltest">
 
-    <permission android:name="com.example.administrator.myaidltest.MyService"
-        android:protectionLevel="normal">
-    </permission>
+    <permission
+        android:name="com.example.administrator.myaidltest.MyService"
+        android:protectionLevel="normal"></permission>
 
-    <uses-permission android:name="com.example.administrator.myaidltest.MyService"/>
+    <uses-permission android:name="com.example.administrator.myaidltest.MyService" />
+    <uses-permission android:name="com.example.provider" />
 
     <application
         android:allowBackup="true"
@@ -16,23 +17,33 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
+        </activity>
+
+        <service
+            android:name=".MyService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.example.administrator.myaidltest.MyService"
+            android:process="com.mytest.another.process"/>
+        <service
+            android:name="com.example.administrator.messengertest.MessengerService"
+            android:enabled="true"
+            android:exported="true"
+            android:process="com.mytest.three.process" />
+
+        <provider
+            android:name="com.example.contentprovider.BookProvider"
+            android:authorities="com.example.contentprovider.BookProvider"
+            android:permission="com.example.provider"
+            android:process="com.provider.one.process"/>
+
+        <activity android:name="com.example.contentprovider.ProviderActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".MyService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="com.example.administrator.myaidltest.MyService"
-            android:process="com.mytest.another.process">
-        </service>
-
-        <service android:name="com.example.administrator.messengertest.MessengerService"
-            android:enabled="true"
-            android:exported="true"
-            android:process="com.mytest.three.process"/>
     </application>
 
 </manifest>
