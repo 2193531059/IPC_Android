@@ -4,10 +4,12 @@
 
     <permission
         android:name="com.example.administrator.myaidltest.MyService"
-        android:protectionLevel="normal"></permission>
+        android:protectionLevel="normal" />
 
     <uses-permission android:name="com.example.administrator.myaidltest.MyService" />
     <uses-permission android:name="com.example.provider" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -16,15 +18,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
-        </activity>
+        <activity android:name=".MainActivity" />
 
         <service
             android:name=".MyService"
             android:enabled="true"
             android:exported="true"
             android:permission="com.example.administrator.myaidltest.MyService"
-            android:process="com.mytest.another.process"/>
+            android:process="com.mytest.another.process" />
         <service
             android:name="com.example.administrator.messengertest.MessengerService"
             android:enabled="true"
@@ -35,9 +36,19 @@
             android:name="com.example.contentprovider.BookProvider"
             android:authorities="com.example.contentprovider.BookProvider"
             android:permission="com.example.provider"
-            android:process="com.provider.one.process"/>
+            android:process="com.provider.one.process" />
 
         <activity android:name="com.example.contentprovider.ProviderActivity">
+
+        </activity>
+
+        <service
+            android:name="com.example.socket.TCPServerService"
+            android:enabled="true"
+            android:exported="true"
+            android:process="com.socket.one" />
+
+        <activity android:name="com.example.socket.TCPClientActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
