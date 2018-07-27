@@ -18,7 +18,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" />
+        <activity android:name=".MainActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <service
             android:name=".MyService"
@@ -31,6 +37,12 @@
             android:enabled="true"
             android:exported="true"
             android:process="com.mytest.three.process" />
+
+        <service
+            android:name=".aidl_impl.BinderPoolService"
+            android:enabled="true"
+            android:exported="true"
+            android:process="com.mytest.four.process" />
 
         <provider
             android:name="com.example.contentprovider.BookProvider"

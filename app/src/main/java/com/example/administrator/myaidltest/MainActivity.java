@@ -16,6 +16,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.administrator.messengertest.MessengerService;
+import com.example.administrator.myaidltest.aidl_impl.BinderPool;
+import com.example.administrator.myaidltest.aidl_impl.MyAddImpl;
+import com.example.administrator.myaidltest.aidl_impl.MyAidlImpl;
 
 import java.util.List;
 import java.util.Random;
@@ -123,11 +126,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //BinderPool测试模块
+//        new Thread(){
+//            @Override
+//            public void run() {
+//                doWork();
+//            }
+//        }.start();
+
+        //AIDL测试模块
         mBtn = findViewById(R.id.pressbtn);
         mBtn.setOnClickListener(this);
         mTextView = findViewById(R.id.showText);
         Intent intent = new Intent(getApplicationContext(), MyService.class);
         bindService(intent, mConnection, BIND_AUTO_CREATE);
+
+        //Messenger测试模块
 //        Intent intent1 = new Intent(getApplicationContext(), MessengerService.class);
 //        bindService(intent1, mconn, BIND_AUTO_CREATE);
     }
@@ -147,6 +162,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
                 break;
+        }
+    }
+
+    private void doWork(){
+        BinderPool binderPool = BinderPool.getInstance(MainActivity.this);
+        IBinder mAddBinder = binderPool.queryBinder(BinderPool.BINDER_IMYADD);
+        IMyAdd myAdd = MyAddImpl.asInterface(mAddBinder);
+        try {
+            int a = myAdd.add(3, 5);
+            Log.e(TAG, "doWork: a = " + a);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        IBinder aAidlBinder = binderPool.queryBinder(BinderPool.BINDER_IMYAIDL);
+        IMyAidl aidl = MyAidlImpl.asInterface(aAidlBinder);
+        try {
+            aidl.addPerson(new Person("a", 2, 2, new PersonCar("red","BMW")));
+
+            List<Person> personList = aidl.getPersonList();
+            Log.e(TAG, "doWork: personList = " + personList);
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 
